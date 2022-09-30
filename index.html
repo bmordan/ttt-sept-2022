@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tic Tac Toes</title>
+    <style>
+        body {
+            height: 100vh;
+            width: 100vw;
+            display: flex;
+            justify-content: center;
+            align-content: center;
+        }
+        main {
+            width: 50vw;
+            height: 50vw;
+            margin: auto;
+            /* display: grid;
+            grid-template-columns: repeat(3, 16.666vw);
+            grid-template-rows: repeat(3, 16.666vw); */
+            grid-gap: 2px;
+        }
+        section {
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+            font-size: 8rem;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: lightblue;
+            color: hotpink;
+        }
+        textarea {
+            padding: 1rem;
+            font-size: 18px;
+            width: 100%;
+            resize: none;
+            margin: auto;
+        }
+    </style>
+</head>
+<body>
+    <h1>Bernard's Project</h1>
+    <script>
+        const algorithm = {
+            name: 'AES-GCM',
+            length: 128
+        }
+        
+        const settings = {
+            name: 'AES-GCM',
+            iv: new Uint8Array([6, 93, 47, 153, 109, 221, 252, 207, 165, 24, 18, 177, 232, 52, 177, 74]) // you both need this
+        }
+        
+        async function sendMessage (msg) {
+            const msgAsArrayBuffer = new TextEncoder().encode(msg)
+            const key = await crypto.subtle.generateKey(algorithm, true, ["encrypt", "decrypt"])
+            const shareableKey = await crypto.subtle.exportKey('jwk', key)
+            const ciphertext = await crypto.subtle.encrypt(settings, key, msgAsArrayBuffer)
+            const encryptedBufferToString = Array
+            .from(new Uint8Array(ciphertext))
+            .map(byte => String.fromCharCode(byte)).join('')
+            const toTransfer = btoa(encryptedBufferToString + "|" + JSON.stringify(shareableKey))
+            console.log(toTransfer)
+        }
+
+        async function readMessage(msg) {
+            const [encryptedBufferToString, shareableKey] = atob(msg).split("|")
+            const ciphertext = new Uint8Array(encryptedBufferToString.match(/[\s\S]/g).map(ch => ch.charCodeAt(0)))
+            const key = await crypto.subtle.importKey('jwk', JSON.parse(shareableKey), algorithm, false, ["decrypt"])
+            const decrypted = await crypto.subtle.decrypt(settings, key, ciphertext)
+            const decodedMessage = new TextDecoder().decode(decrypted)
+            console.log(decodedMessage)
+        }
+    </script>
+</body>
+</html>
